@@ -66,7 +66,7 @@ removeLeftRecursion = concatMap remove where
       hasSemantic _                 = True
   
   remove d@(Definition nont _ (NonTerminal nt))
-    | nont == nt = error "cannot remove left recursion"
+    | nont == nt = fail "cannot remove left recursion"
     | otherwise = [d]
 
   remove e = [e]

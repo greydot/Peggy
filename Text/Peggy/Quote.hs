@@ -80,7 +80,7 @@ peggyFile :: FilePath -> Q Exp
 peggyFile filename = do
   res <- runIO $ parseFile syntax filename
   case res of
-    Left err -> error $ show err
+    Left err -> fail $ show err
     Right syn -> dataToExpQ (const Nothing) syn
 
 qDecs :: String -> Q [Dec]
@@ -126,7 +126,7 @@ genParser qqs syn = do
 parseSyntax :: SrcPos -> String -> Syntax
 parseSyntax pos txt =
   case parse syntax pos txt of
-    Left err -> error $ "peggy syntax-error: " ++ show err
+    Left err -> fail $ "peggy syntax-error: " ++ show err
     Right defs -> defs
 
 locToPos :: Loc -> SrcPos

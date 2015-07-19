@@ -32,7 +32,7 @@ genQQ syn (qqName, parserName) = do
       e <- [| \str -> do
                loc <- location
                case parse $(varE $ mkName parserName) (SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)) str of
-                 Left err -> error $ show err
+                 Left err -> fail $ show err
                  Right a -> a
             |]
       u <- [| undefined |]
@@ -134,8 +134,9 @@ generate defs = do
       [| lift <$> anyChar |]
 
     (False, NonTerminal nont) ->
-      if isExp nont then error $ "value cannot contain exp: " ++ nont
-      else [| $(varE $ mkName nont) |]
+      if isExp nont
+        then fail $ "value cannot contain exp: " ++ nont
+        else [| $(varE $ mkName nont) |]
     (True,  NonTerminal nont) ->
       if isExp nont
         then [| $(varE $ mkName nont) |]
@@ -185,7 +186,7 @@ generate defs = do
     (True,  Named "_" f) ->
       [| () <$ $(genP isE f) |]
 
-    (_,  Named {}) -> error "named expr must has semantic."
+    (_,  Named {}) -> fail "named expr must have semantic."
 
     (False, Choice es) ->
       foldl1 (\a b -> [| $a <|> $b |]) $ map (genP isE) es
@@ -226,7 +227,7 @@ generate defs = do
         qames nn = map qar [1..nn]
 
     _ ->
-      error $ "internal compile error: " ++ show e
+      fail $ "internal compile error: " ++ show e
 
     where
       genBinds _ [] = []
@@ -258,7 +259,7 @@ generate defs = do
   genCF isE cf =
     case parsed of
       Left _ ->
-        error $ "code fragment parse error: " ++ scf
+        fail $ "code fragment parse error: " ++ scf
       Right ret ->
         return ret
     where
@@ -267,7 +268,7 @@ generate defs = do
     toStr (Snippet str) = str
     toStr (Argument a)  = var a
     toStr (AntiArgument nn)
-      | not isE = error "Anti-quoter is not allowed in non-AQ parser"
+      | not isE = fail "Anti-quoter is not allowed in non-AQ parser"
       | otherwise = qar nn
     toStr ArgPos = "(LocPos " ++ stName ++ ")"
     toStr ArgSpan = "(LocSpan " ++ stName ++ " " ++ edName ++ ")"
@@ -293,13 +294,13 @@ generate defs = do
 parseExp' str =
   case parseExp str of
     Left _ ->
-      error $ "code fragment parse error: " ++ str
+      fail $ "code fragment parse error: " ++ str
     Right ret ->
       return ret
 
 parseType' typ =
   case parseType typ of
-    Left err -> error $ "type parse error :" ++ typ ++ ", " ++ err
+    Left err -> fail $ "type parse error :" ++ typ ++ ", " ++ err
     Right t -> case t of
       -- GHC.Unit.()/GHC.Tuple.() is not a type name. Is it a bug of haskell-src-meta?
       -- Use (TupleT 0) insted.

@@ -51,6 +51,7 @@ module Text.Peggy.Prim (
   ) where
 
 import Control.Applicative
+import Control.Monad (when)
 import Control.Monad.ST
 import Control.Monad.Error
 import Data.Char
